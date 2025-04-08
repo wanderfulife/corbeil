@@ -21,6 +21,10 @@
 
       <div v-if="currentStep === 'poste'">
         <h2>Zone de l'enquête</h2>
+        <!-- New PDF button for Poste -->
+        <button @click="pdfToShow = '/PASO.pdf'" class="btn-pdf">
+          Voir le plan des postes
+        </button>
         <button
           v-for="(option, index) in firstQuestion.options"
           :key="index"
@@ -51,13 +55,21 @@
         <div class="question-container" v-if="currentQuestion">
           <h2>{{ currentQuestion.text }}</h2>
 
-          <!-- PDF Button for Q3a and Q3a_nonvoyageur -->
+          <!-- PDF Button for QNV2A and QP3A -->
           <button
-            v-if="['QNV2A', 'QP3A'].includes(currentQuestion.id)"
-            @click="showPdf = true"
+            v-if="['Localisation_14a_ModeO', 'Localisation_15_ModeO','18a_O', 'Localisation_14a_ModeD', 'Localisation_15_ModeD', '18a_D'].includes(currentQuestion.id)"
+            @click="pdfToShow = '/Plan.pdf'"
             class="btn-pdf"
           >
             Voir le plan du parking
+          </button>
+          <!-- PDF Button for Q10 -->
+          <button
+            v-if="currentQuestion.id === 'Q10'"
+            @click="pdfToShow = '/PASO.pdf'"
+            class="btn-pdf"
+          >
+            Voir le plan des postes
           </button>
           <!-- Standard options -->
           <div
@@ -195,11 +207,11 @@
       <AdminDashboard :questions="questions" />
     </div>
     <!-- PDF Modal -->
-    <div v-if="showPdf" class="modal">
+    <div v-if="pdfToShow" class="modal">
       <div class="modal-content pdf-content">
-        <span class="close" @click="showPdf = false">&times;</span>
+        <span class="close" @click="pdfToShow = null">&times;</span>
         <iframe
-          :src="pdfUrl"
+          :src="pdfToShow"
           width="100%"
           height="500px"
           type="application/pdf"
@@ -238,16 +250,17 @@ const isSurveyComplete = ref(false);
 const selectedCommune = ref("");
 const stationInput = ref("");
 const filteredStations = ref([]);
-const showPdf = ref(false);
+const pdfToShow = ref(null);
 const streetSelections = ref({});
 const communeSelections = ref({});
 const postalCodePrefixes = ref({});
-const pdfUrl = ref("/Plan.pdf");
-// Firestore refs
-const surveyCollectionRef = collection(db, "Corbeil");
-const counterDocRef = doc(db, "counterCorbeil", "surveyCounter");
 const gareSelections = ref({});
 const savedPoste = ref(null);
+
+// Firestore refs (Re-added)
+const surveyCollectionRef = collection(db, "Corbeil");
+const counterDocRef = doc(db, "counterCorbeil", "surveyCounter");
+
 const firstQuestion = questions.find((q) => q.id === "Poste");
 
 const handleGareSelection = () => {
