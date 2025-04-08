@@ -143,7 +143,7 @@
           <div v-if="currentQuestion.freeText">
             <div class="input-container">
               <input
-                v-if="currentQuestion.id === 'Q3'"
+                v-if="['Q3', 'Quai', 'TempO', 'TempD', '19aD', '19aO'].includes(currentQuestion.id)"
                 v-model="freeTextAnswer"
                 class="form-control"
                 type="number"
