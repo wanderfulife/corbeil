@@ -204,6 +204,7 @@ export const questions = [
 			{ id: "4", text: "Autres, à préciser", next: "18c_O_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "ModeD",
 	},
 	{
 		id: "18c_O_Autre",
@@ -225,6 +226,7 @@ export const questions = [
 			{ id: "8", text: "Autre, préciser", next: "19dO_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "ModeD",
 	},
 	{
 		id: "19dO_Autre",
@@ -246,6 +248,7 @@ export const questions = [
 			{ id: "8", text: "Autre, préciser", next: "19e_O_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "ModeD",
 	},
 	{
 		id: "19e_O_Autre",
@@ -381,6 +384,7 @@ export const questions = [
 			{ id: "8", text: "Autre, préciser", next: "19d_D_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "Q10"
 	},
 	{
 		id: "19d_D_Autre",
@@ -402,6 +406,7 @@ export const questions = [
 			{ id: "8", text: "Autre, préciser", next: "19e_D_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "Q10" 
 	},
 	{
 		id: "19e_D_Autre",
@@ -457,6 +462,7 @@ export const questions = [
 			{ id: "9", text: "autres, précisez…", next: "non_utilisation_bus_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "non_utilisation_velo"
 	},
 	{
 		id: "non_utilisation_bus_Autre",
@@ -468,37 +474,39 @@ export const questions = [
 		id: "non_utilisation_velo",
 		text: "Pourquoi n'utilisez-vous pas le vélo ?",
 		options: [
-			{ id: "1", text: "j'utilise le vélo", next: "20" },
-			{ id: "2", text: "pas de vélo", next: "20" },
-			{ id: "3", text: "distance trop longue", next: "20" },
-			{ id: "4", text: "pas de stationnement sécurisé", next: "20" },
-			{ id: "5", text: "itinéraire dangereux", next: "20" },
-			{ id: "6", text: "n'y a pas pensé", next: "20" },
-			{ id: "7", text: "pas de  piste cyclable", next: "20" },
+			{ id: "1", text: "j'utilise le vélo", next: "Q20" },
+			{ id: "2", text: "pas de vélo", next: "Q20" },
+			{ id: "3", text: "distance trop longue", next: "Q20" },
+			{ id: "4", text: "pas de stationnement sécurisé", next: "Q20" },
+			{ id: "5", text: "itinéraire dangereux", next: "Q20" },
+			{ id: "6", text: "n'y a pas pensé", next: "Q20" },
+			{ id: "7", text: "pas de  piste cyclable", next: "Q20" },
 			{ id: "8", text: "Autres, précisez...", next: "non_utilisation_velo_Autre", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "Q20" 
 	},
 	{
 		id: "non_utilisation_velo_Autre",
 		text: "Precisez :",
 		freeText: true,
-		next: "20",
+		next: "Q20",
 	},
 	{
-		id: "20",
+		id: "Q20",
 		text: "Si un parking relais est construit à 5 min à pied de la gare, seriez-vous intéressé pour l'utiliser ?",
 		options: [
-			{ id: "1", text: "Oui, si c'est gratuit", next: "21" },
-			{ id: "2", text: "Oui, si des tarifs préférentiels sont proposés", next: "21" },
-			{ id: "3", text: "Non, je préfère me garer au plus proche de la gare", next: "21" },
-			{ id: "4", text: "Non, je préfère me garer gratuitement", next: "21" },
-			{ id: "5", text: "Non, autre raison", next: "21", requiresPrecision: true },
+			{ id: "1", text: "Oui, si c'est gratuit", next: "Q21" },
+			{ id: "2", text: "Oui, si des tarifs préférentiels sont proposés", next: "Q21" },
+			{ id: "3", text: "Non, je préfère me garer au plus proche de la gare", next: "Q21" },
+			{ id: "4", text: "Non, je préfère me garer gratuitement", next: "Q21" },
+			{ id: "5", text: "Non, autre raison", next: "Q21", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "Q21" 
 	},
 	{
-		id: "21",
+		id: "Q21",
 		text: "Selon vous, qu'est ce qui devrait être amélioré au niveau de la gare de Corbeil Essonnes ?",
 		options: [
 			{ id: "1", text: "Parvis de gare", next: "end" },
@@ -514,5 +522,6 @@ export const questions = [
 			{ id: "11", text: "Autre", next: "end", requiresPrecision: true },
 		],
 		multipleChoice: true,
+		next: "end"
 	},
 ];

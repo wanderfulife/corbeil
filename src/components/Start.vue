@@ -62,7 +62,7 @@
           <!-- Standard options -->
           <div
             v-if="
-              !currentQuestion.freeText && !currentQuestion.usesCommuneSelector
+              !currentQuestion.freeText && !currentQuestion.usesCommuneSelector && !currentQuestion.multipleChoice
             "
           >
             <div v-for="(option, index) in currentQuestionOptions" :key="index">
@@ -74,6 +74,26 @@
                 {{ option.text }}
               </button>
             </div>
+          </div>
+
+          <!-- Multiple Choice Options -->
+          <div v-if="currentQuestion.multipleChoice">
+            <div v-for="(option, index) in currentQuestionOptions" :key="index">
+              <button
+                v-if="!option.hidden"
+                @click="toggleMultiSelect(option)"
+                :class="['btn-option', { selected: isOptionSelected(option) }]"
+              >
+                {{ option.text }}
+              </button>
+            </div>
+            <button
+              @click="confirmAndNextQuestion"
+              class="btn-next"
+              :disabled="!(answers[currentQuestion.id] && answers[currentQuestion.id].length > 0)"
+            >
+              {{ isLastQuestion ? "Terminer" : "Suivant" }}
+            </button>
           </div>
 
           <!-- Commune Selector -->
@@ -365,7 +385,7 @@ const logAnswers = () => {
 };
 
 const selectAnswer = (option) => {
-  if (currentQuestion.value) {
+  if (currentQuestion.value && !currentQuestion.value.multipleChoice) {
     const questionId = currentQuestion.value.id;
     console.log("Selected option:", option);
     console.log("Question ID:", questionId);
@@ -430,30 +450,63 @@ const handleCommuneSelection = () => {
 };
 
 const nextQuestion = (forcedNextId = null) => {
-  let nextQuestionId = forcedNextId;
-  if (!nextQuestionId && currentQuestion.value) {
+  let finalNextId = forcedNextId; // Use a new variable for clarity
+
+  // If no ID was forced (e.g., coming from free text submit without specific routing), determine it now.
+  // This block should generally NOT run when coming from confirmAndNextQuestion, as forcedNextId will be set.
+  if (!finalNextId && currentQuestion.value) {
+    console.log(`[nextQuestion] No forced ID. Determining from current question (${currentQuestion.value.id}).`);
     if (typeof currentQuestion.value.next === "function") {
-      nextQuestionId = currentQuestion.value.next(answers.value);
+       // Evaluate function-based next, typically for single-choice questions already handled in selectAnswer,
+       // but could be relevant if called unexpectedly.
+       finalNextId = currentQuestion.value.next(answers.value);
     } else {
-      nextQuestionId = currentQuestion.value.next;
+       // Use the default next string from the question definition.
+       finalNextId = currentQuestion.value.next;
     }
   }
 
-  if (nextQuestionId === "end") {
+  // --- Critical Logging ---
+  console.log(`[nextQuestion] Attempting navigation. Received forced ID: "${forcedNextId}". Final ID to search for: "${finalNextId}"`);
+
+  if (finalNextId === "end") {
+    console.log(`[nextQuestion] Final ID is 'end'. Finishing survey.`);
     finishSurvey();
-  } else if (nextQuestionId) {
-    const nextIndex = questions.findIndex((q) => q.id === nextQuestionId);
+  } else if (finalNextId) {
+    // --- Log before searching ---
+    console.log(`[nextQuestion] Searching for index of ID: -->"${finalNextId}"<--`); // Added arrows to see spaces
+    const nextIndex = questions.findIndex((q) => q.id === finalNextId);
+    // --- Log the result ---
+    console.log(`[nextQuestion] Result of findIndex for "${finalNextId}": ${nextIndex}`);
+
     if (nextIndex !== -1) {
+      const nextQ = questions[nextIndex];
+      console.log(`[nextQuestion] Found question: ${nextQ.id} at index ${nextIndex}. Proceeding.`);
+      // Initialize answer as an array if the *next* question is multiple choice and not yet answered
+      if (nextQ.multipleChoice && answers.value[nextQ.id] === undefined) {
+        console.log(`[nextQuestion] Initializing answers array for upcoming multiple choice: ${nextQ.id}`);
+        answers.value[nextQ.id] = [];
+      }
+
       currentQuestionIndex.value = nextIndex;
-      questionPath.value.push(nextQuestionId);
-      freeTextAnswer.value = "";
+      // Only push path if it's different from the last element to avoid duplicates on back/forth
+      if (questionPath.value[questionPath.value.length - 1] !== finalNextId) {
+          questionPath.value.push(finalNextId);
+      }
+      freeTextAnswer.value = ""; // Reset free text for the next question
 
       // Execute onEnter function if it exists
-      const nextQuestion = questions[nextIndex];
-      if (typeof nextQuestion.onEnter === "function") {
-        nextQuestion.onEnter(answers.value);
+      if (typeof nextQ.onEnter === "function") {
+        nextQ.onEnter(answers.value);
       }
+    } else {
+      // --- This is where the error happens ---
+      console.error(`[nextQuestion] Error: Question with ID "${finalNextId}" NOT FOUND in questions array. Finishing survey.`);
+      finishSurvey(); // Premature end
     }
+  } else {
+    console.warn(`[nextQuestion] Warning: No finalNextId could be determined. currentQuestion ID: ${currentQuestion.value?.id}. Finishing survey.`);
+    finishSurvey();
   }
 };
 
@@ -472,6 +525,78 @@ const previousQuestion = () => {
     }
   }
 };
+
+// New method for multiple choice selection
+const toggleMultiSelect = (option) => {
+  if (currentQuestion.value && currentQuestion.value.multipleChoice) {
+    const questionId = currentQuestion.value.id;
+    const answerArray = answers.value[questionId] || [];
+    const optionValue = option.id || option.text;
+    const index = answerArray.indexOf(optionValue);
+
+    if (index === -1) {
+      answerArray.push(optionValue);
+    } else {
+      answerArray.splice(index, 1);
+    }
+    answers.value[questionId] = answerArray;
+    console.log("Updated multi-select answers:", answers.value);
+  }
+};
+
+// New method to check if a multi-select option is selected (for styling)
+const isOptionSelected = (option) => {
+  if (currentQuestion.value && currentQuestion.value.multipleChoice) {
+    const questionId = currentQuestion.value.id;
+    const answerArray = answers.value[questionId] || [];
+    const optionValue = option.id || option.text;
+    return answerArray.includes(optionValue);
+  }
+  return false;
+};
+
+// New method to confirm multi-select and move next
+const confirmAndNextQuestion = () => {
+  if (currentQuestion.value && currentQuestion.value.multipleChoice) {
+    console.log(`[confirmAndNextQuestion] Starting for ${currentQuestion.value.id}`);
+    if (currentQuestion.value.next === "end") { // Check if the question itself points to "end"
+      console.log(`[confirmAndNextQuestion] Question ${currentQuestion.value.id} next is 'end', finishing survey.`);
+      finishSurvey();
+    } else {
+      // Determine the default next question ID
+      let nextQuestionId = null;
+      if (typeof currentQuestion.value.next === 'function') {
+        nextQuestionId = currentQuestion.value.next(answers.value);
+      } else {
+        nextQuestionId = currentQuestion.value.next; // e.g., "20" for non_utilisation_velo
+      }
+      console.log(`[confirmAndNextQuestion] Default next ID determined as: ${nextQuestionId}`);
+
+      // Check if ANY selected option requires precision
+      const currentAnswers = answers.value[currentQuestion.value.id] || [];
+      console.log(`[confirmAndNextQuestion] Current selections:`, currentAnswers);
+      const precisionOptionSelected = currentQuestion.value.options.find(opt => 
+        currentAnswers.includes(opt.id || opt.text) && opt.requiresPrecision
+      );
+      console.log(`[confirmAndNextQuestion] Precision option selected?:`, precisionOptionSelected);
+
+      if (precisionOptionSelected && precisionOptionSelected.next) {
+        // If an option requiring precision is selected, route to its specific 'next'
+        console.log(`[confirmAndNextQuestion] Precision required. Routing to option's next: ${precisionOptionSelected.next}`);
+        nextQuestion(precisionOptionSelected.next); // e.g., nextQuestion("non_utilisation_velo_Autre")
+      } else if (nextQuestionId) {
+        // Otherwise (no precision option selected), route to the default 'next' for the question
+        console.log(`[confirmAndNextQuestion] No precision override. Routing to default next: ${nextQuestionId}`);
+        nextQuestion(nextQuestionId); // e.g., nextQuestion("20")
+      } else {
+        // Fallback if no next is defined
+        console.warn(`[confirmAndNextQuestion] Fallback triggered! No default next ID and no precision override for ${currentQuestion.value.id}. Calling nextQuestion() without ID.`);
+        nextQuestion(); 
+      }
+    }
+  }
+};
+
 // Update the finishSurvey function
 const finishSurvey = async () => {
   isSurveyComplete.value = true;
@@ -826,5 +951,10 @@ h2 {
 .precision-input h3 {
   font-size: 1.1em;
   margin-bottom: 10px;
+}
+
+.btn-option.selected {
+  background-color: #6a8acd;
+  border: 2px solid white;
 }
 </style>

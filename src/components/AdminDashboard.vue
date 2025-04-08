@@ -170,13 +170,22 @@ const downloadData = async () => {
     const data = querySnapshot.docs.map((doc) => {
       const docData = doc.data();
       const row = headerOrder.reduce((acc, key) => {
-        acc[key] = "";
+        acc[key] = ""; // Initialize with empty string
         return acc;
       }, {});
 
       Object.keys(docData).forEach((key) => {
         if (headerOrder.includes(key)) {
-          row[key] = docData[key];
+          const value = docData[key];
+          // Check if the value is an array
+          if (Array.isArray(value)) {
+            // Convert array to comma-separated string
+            row[key] = value.join(','); // Join elements with a comma
+          } else {
+            // Keep other values (strings, numbers, etc.) as they are
+            // Ensure even null/undefined are converted to empty string for consistency
+            row[key] = value !== null && value !== undefined ? value : "";
+          }
         }
       });
 
