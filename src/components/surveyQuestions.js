@@ -26,13 +26,13 @@ export const questions = [
 	},
 	{
 		id: "TempO",
-		text: "Combien de temps avez-vous mis pour arriver à la gare où nous nous trouvons actuellement ?",
+		text: "Combien de temps avez-vous mis pour arriver à la gare où nous nous trouvons actuellement (en minutes)?",
 		freeText: true,
 		next: "DepO",
 	},
 	{
 		id: "TempD",
-		text: "Combien de temps allez-vous mettre depuis la gare de Corbeil Essonnes pour arriver à destination ?",
+		text: "Combien de temps allez-vous mettre depuis la gare de Corbeil Essonnes pour arriver à destination (en minutes)?",
 		freeText: true,
 		next: "DepO",
 	},

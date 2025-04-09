@@ -159,9 +159,11 @@
                 v-model="freeTextAnswer"
                 class="form-control"
                 type="number"
+                inputmode="numeric"
+                pattern="[0-9]*"
                 :placeholder="
                   currentQuestion.freeTextPlaceholder ||
-                  'Votre réponse (nombres uniquement)'
+                  '(nombres uniquement)'
                 "
               />
               <input
